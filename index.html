@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LaPLE Reflex Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
+        body { font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
+        .hidden-view { display: none !important; }
+        .grid-cell { aspect-ratio: 1 / 1; }
+        /* 배경 광고 레이어 그라데이션 (Red 테마) */
+        #bg-ad-content { background: linear-gradient(145deg, #fee2e2 0%, #fef2f2 100%); }
+        .modal-ad-banner { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div id="view-intro" class="flex flex-col items-center justify-center min-h-screen p-6">
+        <div class="w-full max-w-sm flex flex-col space-y-8">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-red-600 rounded-[22px] shadow-lg mb-4">
+                    <span class="text-3xl text-white">⚡</span>
+                </div>
+                <h1 id="txt-mainTitle" class="text-3xl font-black text-slate-900 mb-1 tracking-tight italic">Reflex Challenge</h1>
+                <p class="text-red-600 font-bold text-sm italic uppercase tracking-tighter">HSBC Beta Test</p>
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4 text-sm font-medium text-slate-600">
+                <div class="flex items-start space-x-3">
+                    <span class="bg-red-50 text-red-600 w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs mt-0.5 flex-shrink-0">1</span>
+                    <p>Enter your <strong class="text-red-600 font-bold">nickname</strong> to start the event.</p>
+                </div>
+                <div class="flex items-start space-x-3 border-t border-slate-50 pt-4">
+                    <span class="bg-red-50 text-red-600 w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs mt-0.5 flex-shrink-0">2</span>
+                    <p>Tap numbers <strong class="text-red-600 font-bold underline">1 to 25</strong> in order as fast as possible.</p>
+                </div>
+                <div class="flex items-start space-x-3 border-t border-slate-50 pt-4">
+                    <span class="bg-red-50 text-red-600 w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs mt-0.5 flex-shrink-0">3</span>
+                    <p id="txt-prizeInfo1">Check the leaderboard and aim for the top prize!</p>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <input type="text" id="nickname-input" placeholder="Enter nickname" 
+                    class="w-full px-5 py-4 rounded-2xl border-2 border-slate-100 focus:border-red-500 focus:outline-none text-center font-bold text-lg bg-white transition-all">
+                <button onclick="checkAndStart()" class="w-full py-4 bg-red-600 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all text-lg font-sans">
+                    START CHALLENGE
+                </button>
+                <button onclick="fetchRankings()" class="w-full py-2 text-slate-400 font-semibold text-sm">
+                    View Leaderboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-game" class="hidden-view flex flex-col items-center justify-center min-h-screen p-4 text-center">
+        <div class="w-full max-w-sm flex flex-col">
+            <div class="flex justify-between items-center bg-white p-4 rounded-t-3xl border border-slate-100 border-b-0 shadow-sm relative z-20">
+                <div class="text-center flex-1 border-r border-slate-50">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NEXT</span>
+                    <span id="next-number" class="block text-2xl font-black text-red-600">1</span>
+                </div>
+                <div class="text-center flex-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">TIME</span>
+                    <span id="timer" class="block text-2xl font-black text-slate-800 tabular-nums">0.00s</span>
+                </div>
+            </div>
+
+            <div class="relative w-full rounded-b-3xl shadow-xl border border-slate-100 overflow-hidden bg-white z-10">
+                <div id="bg-ad-layer" class="absolute inset-0 flex items-center justify-center p-6 opacity-0 transition-opacity duration-500 z-0">
+                    <div id="bg-ad-content" class="w-full h-full rounded-2xl flex flex-col items-center justify-center text-center border-2 border-red-200 p-4">
+                        <p id="txt-adText" class="text-red-800 font-bold text-xl mb-2 leading-tight italic">Reliable Choice</p>
+                        <p id="txt-adBrand" class="text-red-900 font-black text-4xl uppercase leading-tight">Kyobo LaPLE</p>
+                    </div>
+                </div>
+                <div id="game-board" class="grid grid-cols-5 gap-1.5 p-2 pt-0 relative z-10"></div>
+            </div>
+            <button onclick="goHome()" class="mt-8 py-2 text-slate-400 text-xs font-medium underline underline-offset-4">Quit</button>
+        </div>
+    </div>
+
+    <div id="view-ranking" class="hidden-view fixed inset-0 bg-white z-50 flex flex-col">
+        <div class="p-6 border-b flex justify-between items-center bg-red-600 text-white">
+            <h2 class="text-xl font-bold uppercase tracking-tighter">🏆 TOP 100 Rankings</h2>
+            <button onclick="goHome()" class="text-white text-3xl font-light">&times;</button>
+        </div>
+        <div class="bg-red-50 px-6 py-3 flex justify-between items-center text-[10px] font-bold text-red-800 border-b border-red-100">
+            <span id="txt-prizeInfo1_rank">👑 1-3rd: 10K P</span>
+            <span id="txt-prizeInfo2">🎁 10th units: 1K P</span>
+        </div>
+        <div class="flex-1 overflow-y-auto px-6">
+            <table class="w-full border-collapse">
+                <tbody id="ranking-list"></tbody>
+            </table>
+        </div>
+        <div class="p-4 border-t bg-slate-50 text-center">
+            <p class="text-red-600 font-bold text-xs mb-3 italic">📢 Prizes will be sent next Monday.</p>
+            <button onclick="goHome()" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-lg uppercase">Back to Home</button>
+        </div>
+    </div>
+
+    <div id="result-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-6 z-[60]">
+        <div class="bg-white rounded-[40px] p-8 w-full max-w-sm text-center shadow-2xl overflow-hidden">
+            <div class="text-5xl mb-4">🏆</div>
+            <p id="result-nickname" class="text-red-600 font-bold mb-1"></p>
+            <p id="result-time" class="text-4xl font-black text-slate-900 mb-6 tracking-tight">0.00s</p>
+            
+            <a id="lnk-modalAd" href="#" target="_blank" class="modal-ad-banner block rounded-2xl p-4 mb-6 border border-red-100">
+                <p id="txt-modalAdText" class="text-red-800 text-[10px] font-bold mb-0.5 opacity-80 uppercase leading-none">A Reliable Choice</p>
+                <p id="txt-modalAdBrand" class="text-red-900 text-lg font-black leading-tight">Kyobo LaPLE</p>
+                <p class="mt-1 text-red-600 text-[10px] font-bold uppercase">View Product Details →</p>
+            </a>
+            <button onclick="handleShowRankingClick()" class="w-full py-4 bg-red-600 text-white font-bold rounded-2xl shadow-lg">VIEW LEADERBOARD</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. 기획자님의 GAS URL (수정 금지)
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwXDGnPj5x-vCllV3xZxBjagoc-E5bZJ015oWOYISp3t27Il9kECCfSrOk3WD5Uwi6s/exec";
+
+        // 2. 쿠키 UID 추출 로직
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return "UNKNOWN_USER";
+        }
+        const userUID = getCookie("UID");
+
+        const views = { intro: document.getElementById('view-intro'), game: document.getElementById('view-game'), ranking: document.getElementById('view-ranking') };
+        const board = document.getElementById('game-board'), timerDisplay = document.getElementById('timer'), nextNumDisplay = document.getElementById('next-number');
+        const nicknameInput = document.getElementById('nickname-input'), resultModal = document.getElementById('result-modal'), bgAdLayer = document.getElementById('bg-ad-layer');
+
+        let nextNumber = 1, timerInterval = null, startTime = null, isGameRunning = false, currentNickname = "";
+
+        // 3. 페이지 로드 시 시트 설정값 가져오기
+        window.onload = loadSettings;
+
+        async function loadSettings() {
+            console.log("🚀 [1/4] 시트 데이터 호출 중...");
+            try {
+                // 캐시 방지를 위해 시간 파라미터(?t=) 추가
+                const response = await fetch(GAS_URL + (GAS_URL.includes('?') ? '&' : '?') + "t=" + new Date().getTime());
+                const data = await response.json();
+                
+                console.log("🚀 [2/4] 수신된 데이터:", data);
+
+                if (data && data.settings) {
+                    const s = data.settings;
+                    
+                    // 안전하게 데이터 매칭 (대소문자 시트와 일치해야 함)
+                    const updateUI = (id, val) => {
+                        const el = document.getElementById(id);
+                        if (el && val !== undefined) el.innerText = String(val);
+                    };
+
+                    updateUI('txt-mainTitle', s.mainTitle);
+                    updateUI('txt-prizeInfo1', s.prizeInfo1);
+                    updateUI('txt-prizeInfo1_rank', s.prizeInfo1);
+                    updateUI('txt-prizeInfo2', s.prizeInfo2);
+                    updateUI('txt-adText', s.adText);
+                    updateUI('txt-modalAdText', s.modalAdText);
+                    updateUI('txt-modalAdBrand', s.modalAdBrand);
+
+                    if (s.adBrand && document.getElementById('txt-adBrand')) {
+                        document.getElementById('txt-adBrand').innerHTML = String(s.adBrand).replace(/\n/g, "<br>");
+                    }
+                    if (s.modalAdLink && document.getElementById('lnk-modalAd')) {
+                        document.getElementById('lnk-modalAd').href = String(s.modalAdLink);
+                    }
+                    console.log("🚀 [3/4] UI 업데이트 완료!");
+                }
+            } catch (e) { 
+                console.error("❌ 데이터 로딩 실패:", e); 
+            }
+        }
+
+        function switchView(v) { Object.values(views).forEach(x => x.classList.add('hidden-view')); views[v].classList.remove('hidden-view'); }
+        
+        function checkAndStart() {
+            currentNickname = nicknameInput.value.trim();
+            if (!currentNickname) { alert("Please enter nickname!"); return; }
+            switchView('game'); initGame();
+        }
+
+        function updateAdOpacity() { bgAdLayer.style.opacity = ((nextNumber - 1) / 25).toFixed(2); }
+
+        function initGame() {
+            nextNumber = 1; nextNumDisplay.textContent = '1'; timerDisplay.textContent = '0.00s';
+            updateAdOpacity(); createBoard();
+            setTimeout(() => { 
+                isGameRunning = true; startTime = Date.now();
+                timerInterval = setInterval(() => { timerDisplay.textContent = ((Date.now() - startTime) / 1000).toFixed(2) + 's'; }, 10);
+            }, 400);
+        }
+
+        function createBoard() {
+            board.innerHTML = '';
+            const nums = Array.from({length: 25}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            nums.forEach(num => {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell flex items-center justify-center bg-white/95 border border-slate-100 text-xl font-black text-slate-700 rounded-2xl cursor-pointer active:bg-red-600 active:text-white transition-all shadow-sm z-10';
+                cell.textContent = num;
+                cell.onclick = () => {
+                    if (isGameRunning && num === nextNumber) {
+                        cell.classList.add('opacity-0', 'pointer-events-none');
+                        nextNumber++; updateAdOpacity();
+                        if (nextNumber > 25) endGame(); else nextNumDisplay.textContent = nextNumber;
+                    }
+                };
+                board.appendChild(cell);
+            });
+        }
+
+        async function endGame() {
+            clearInterval(timerInterval); isGameRunning = false; bgAdLayer.style.opacity = '1';
+            const finalTime = parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
+            
+            // 기록 전송 (POST)
+            fetch(GAS_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify({ nickname: currentNickname, record: finalTime, uid: userUID }) 
+            });
+
+            setTimeout(() => {
+                document.getElementById('result-nickname').textContent = currentNickname + "'s Score";
+                document.getElementById('result-time').textContent = finalTime + "s";
+                resultModal.classList.remove('hidden');
+            }, 500);
+        }
+
+        function handleShowRankingClick() { resultModal.classList.add('hidden'); fetchRankings(); }
+
+        async function fetchRankings() {
+            const list = document.getElementById('ranking-list');
+            list.innerHTML = '<tr><td colspan="3" class="py-20 text-center text-slate-400">Loading Leaderboard...</td></tr>';
+            switchView('ranking');
+            try {
+                const response = await fetch(GAS_URL + (GAS_URL.includes('?') ? '&' : '?') + "t=" + new Date().getTime());
+                const data = await response.json();
+                list.innerHTML = data.rankings.map((x, i) => {
+                    let r = i + 1, info = "", bg = "", icon = r;
+                    if (r === 1) { icon = "👑"; info = "<span class='text-amber-600 font-bold'>₩10K</span>"; bg = "bg-amber-50"; }
+                    else if (r === 2) { icon = "🥈"; info = "<span class='text-slate-500 font-bold'>₩5K</span>"; bg = "bg-slate-50"; }
+                    else if (r === 3) { icon = "🥉"; info = "<span class='text-orange-500 font-bold'>₩3K</span>"; bg = "bg-orange-50"; }
+                    else if (r % 10 === 0) { info = "<span class='text-red-600 font-bold'>₩1K</span>"; bg = "bg-red-50/30"; }
+                    return `<tr class="${bg} border-b border-slate-50"><td class="py-4 pl-6 text-center w-14 text-lg">${icon}</td><td class="py-4 px-2"><div class="font-bold text-slate-800">${x.n}</div><div class="text-[10px] text-slate-400 font-medium">${info || 'Challenger'}</div></td><td class="py-4 pr-6 text-right font-mono font-bold text-slate-900">${x.t.toFixed(2)}s</td></tr>`;
+                }).join('');
+            } catch (e) { 
+                list.innerHTML = '<tr><td colspan="3" class="py-20 text-center text-red-400 font-bold">Connection Error</td></tr>'; 
+            }
+        }
+
+        function goHome() { clearInterval(timerInterval); isGameRunning = false; resultModal.classList.add('hidden'); switchView('intro'); }
+    </script>
+</body>
+</html>
